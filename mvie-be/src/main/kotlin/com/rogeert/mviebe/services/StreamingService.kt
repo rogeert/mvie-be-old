@@ -15,11 +15,10 @@ class StreamingService {
 
     fun getVideo(videoId:String): Mono<Resource>{
 
-
-        return Mono.fromSupplier {
+         return Mono.fromSupplier {
             resourceLoader.getResource(String.format(FORMAT, videoId))
         }
 
-
     }
+
 }
