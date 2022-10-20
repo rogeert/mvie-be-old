@@ -3,12 +3,7 @@ package com.rogeert.mviebe.models.entities
 import lombok.AllArgsConstructor
 import lombok.Data
 import lombok.NoArgsConstructor
-import javax.persistence.CascadeType
-import javax.persistence.Entity
-import javax.persistence.GeneratedValue
-import javax.persistence.GenerationType
-import javax.persistence.Id
-import javax.persistence.ManyToMany
+import javax.persistence.*
 
 
 @Entity
@@ -26,7 +21,8 @@ class User {
     var username: String ? = "-"
     var email: String ? = "-"
     var password: String ? = "-"
+    var active: Boolean ? = false
 
-    @ManyToMany(cascade = [CascadeType.DETACH])
-    var roles: ArrayList<Role> ? = ArrayList()
+    @OneToMany(cascade = [CascadeType.DETACH],fetch = FetchType.EAGER,)
+    var roles: Set<Role> = HashSet()
 }

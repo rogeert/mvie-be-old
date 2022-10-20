@@ -15,8 +15,9 @@ data class Media(
     val id: Long ? = -1,
     var movieId: Long ? = -1,
 
-    var url: String ? = "-",
-    var size: Long ? = -1
+    var mrl: String ? = "-",
+    var size: Long ? = -1,
+    var resolution: Int ? = -1
 
 
 )

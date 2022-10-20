@@ -15,10 +15,8 @@ class TestController {
     @Autowired
     lateinit var streamingService: StreamingService
 
-
     @GetMapping(value=["video/{title}"], produces = ["video/mp4"])
     fun getVideo(@PathVariable title: String, @RequestHeader("Range") range: String) : Mono<Resource>{
-
 
         return streamingService.getVideo(title)
     }

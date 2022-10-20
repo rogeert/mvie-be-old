@@ -1,17 +1,16 @@
 package com.rogeert.mviebe.services.user
 
 import com.rogeert.mviebe.models.entities.User
-import com.rogeert.mviebe.repositories.UserRepository
+import com.rogeert.mviebe.util.Page
 import com.rogeert.mviebe.util.Response
-import org.springframework.beans.factory.annotation.Autowired
+import com.rogeert.mviebe.util.Validation
+import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
+import java.awt.print.Pageable
 
-@Service
-class UserServiceImpl: UserService {
-
-    @Autowired
-    lateinit var userRepository: UserRepository
+@Component
+class UserServiceImpl: Validation(), UserService {
 
 
     override fun getUserByUsername(username: String): Response<User> {
@@ -20,8 +19,9 @@ class UserServiceImpl: UserService {
 
         val user = userRepository.findByUsername(username)
 
-        user?.let {
-            response.data = it
+        // check if user with this username exists and return it
+        if(user.isPresent){
+            response.data = user.get()
             response.messages.add("User found.")
 
             return response
@@ -34,21 +34,19 @@ class UserServiceImpl: UserService {
         return response
     }
 
-    override fun updateUser(id: Long, newUser: User): Response<User> {
+    override fun updateUser(username: String, newUser: User): Response<User> {
         val response: Response<User> = Response()
 
-        val user = userRepository.findById(id)
+        val user = userRepository.findByUsername(username)
 
+        //check if this user exist in the database
         if(user.isPresent){
-            if(newUser.email.isNullOrEmpty() || newUser.username.isNullOrEmpty() || newUser.name.isNullOrEmpty() || newUser.surname.isNullOrEmpty()){
 
-                response.messages.add("Missing values!")
-                response.status = HttpStatus.BAD_REQUEST
-                response.success = false
-
+            // check if body is valid and return BAD_REQUEST in case it's not
+            if(!validateUserBody(response,newUser, password = false))
                 return response
-            }
 
+            // update and save user changes
             user.get().username = newUser.username
             user.get().name = newUser.name
             user.get().surname = newUser.surname
@@ -57,22 +55,23 @@ class UserServiceImpl: UserService {
             response.messages.add("User was updated successfully.")
         }
 
+        response.messages.add("User not found!")
         response.status = HttpStatus.BAD_REQUEST
         response.success = false
 
         return response
     }
 
-    override fun deleteUserById(userId: Long): Response<String> {
+    override fun deleteUserById(username: String): Response<String> {
 
         val response: Response<String> = Response()
 
-        val user = userRepository.findById(userId)
+        val user = userRepository.findByUsername(username)
 
         if(user.isEmpty){
             response.status = HttpStatus.BAD_REQUEST
             response.success = false
-            response.messages.add("No user was found with this id {$userId}.")
+            response.messages.add("No user was found with this username {$username}.")
 
             return response
         }
@@ -90,11 +89,129 @@ class UserServiceImpl: UserService {
         val response: Response<User> = Response()
 
 
+        if(validateUserBody(user=newUser, response = response)){
+            response.messages.add("Signed up successfully.")
+            response.data = userRepository.save(newUser)
+        }
 
+        return response
 
     }
 
+    override fun getAllUsers(usersPerPage: Int, pageIndex: Int): Response<Page<User>> {
+        val response = Response<Page<User>>()
+        val page = Page<User>()
 
+        page.totItems = userRepository.count().toInt()
+
+        page.totPages = page.totItems!! / usersPerPage
+
+        page.page = pageIndex
+
+        page.data = userRepository.paginated(PageRequest.of(pageIndex,usersPerPage))
+
+        response.status = HttpStatus.OK
+        response.success = true
+        response.data = page
+
+     return response
+    }
+
+    override fun addRole(username: String, roleId: Long): Response<User> {
+        val response: Response<User> = Response()
+
+        val user = userRepository.findByUsername(username)
+
+
+        if(user.isEmpty){
+            response.messages.add("User not found.")
+            response.status = HttpStatus.BAD_REQUEST
+            response.success = false
+
+            return response
+        }
+
+        val role = roleRepository.findById(roleId)
+
+        if(role.isEmpty){
+            response.messages.add("Role not found.")
+            response.status = HttpStatus.BAD_REQUEST
+            response.success = false
+
+            return response
+        }
+
+        val roles = HashSet(user.get().roles)
+
+        if(roles.any { it.id == roleId }){
+            response.messages.add("{$username} already owns this role.")
+            response.status = HttpStatus.BAD_REQUEST
+            response.success = false
+
+            return response
+        }
+
+        roles.add(role.get())
+        user.get().roles = roles
+        response.data = userRepository.save(user.get())
+        response.messages.add("Role was added successfully.")
+
+        return response
+    }
+
+    override fun removeRole(username: String, roleId: Long): Response<User> {
+        val response: Response<User> = Response()
+
+        val user = userRepository.findByUsername(username)
+
+        if(user.isEmpty){
+            response.messages.add("User not found.")
+            response.status = HttpStatus.BAD_REQUEST
+            response.success = false
+
+            return response
+        }
+
+        val role = roleRepository.findById(roleId)
+
+        if(role.isEmpty){
+            response.messages.add("Role not found.")
+            response.status = HttpStatus.BAD_REQUEST
+            response.success = false
+
+            return response
+        }
+
+        val roles = HashSet(user.get().roles)
+
+
+        if(!roles.removeIf { it.id == roleId }){
+
+            response.messages.add("{$username} does not own this role.")
+            response.status = HttpStatus.BAD_REQUEST
+            response.success = false
+
+            return response
+        }
+
+        user.get().roles = roles
+        response.data = userRepository.save(user.get())
+        response.messages.add("Role removed successfully.")
+
+        return response
+    }
+
+    override fun changePassword(username: String): Response<User> {
+        val response: Response<User> = Response()
+        //TODO
+        return response
+    }
+
+    override fun resetPassword(email: String): Response<User> {
+        val response: Response<User> = Response()
+        //TODO
+        return response
+    }
 
 
 }
