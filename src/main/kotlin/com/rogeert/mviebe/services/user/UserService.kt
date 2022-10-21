@@ -8,7 +8,7 @@ interface UserService {
 
     fun getUserByUsername(username: String):Response<User>
     fun updateUser(username: String, newUser:User):Response<User>
-    fun deleteUserById(username: String):Response<String>
+    fun deleteUserByUsername(username: String):Response<String>
     fun newUser(newUser: User):Response<User>
 
     fun getAllUsers(usersPerPage:Int = 10,page: Int = 0):Response<Page<User>>

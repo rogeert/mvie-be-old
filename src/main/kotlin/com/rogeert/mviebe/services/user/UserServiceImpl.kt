@@ -46,13 +46,34 @@ class UserServiceImpl: Validation(), UserService {
             if(!validateUserBody(response,newUser, password = false))
                 return response
 
+            if(newUser.email!! != user.get().email){
+                if(userRepository.findByEmail(newUser.email!!).isPresent){
+                    response.messages.add("This email {${newUser.email}} is already in use!")
+                    response.status = HttpStatus.BAD_REQUEST
+                    response.success = false
+                    return response
+                }
+            }
+
+            if(newUser.username!! != user.get().username){
+                if(userRepository.findByUsername(newUser.username!!).isPresent){
+                    response.messages.add("This username {${newUser.username}} is already in use!")
+                    response.status = HttpStatus.BAD_REQUEST
+                    response.success = false
+                    return response
+                }
+            }
+
             // update and save user changes
             user.get().username = newUser.username
+            user.get().email = newUser.email
             user.get().name = newUser.name
             user.get().surname = newUser.surname
 
             response.data = userRepository.save(user.get())
             response.messages.add("User was updated successfully.")
+            response.status = HttpStatus.OK
+            return response
         }
 
         response.messages.add("User not found!")
@@ -62,7 +83,7 @@ class UserServiceImpl: Validation(), UserService {
         return response
     }
 
-    override fun deleteUserById(username: String): Response<String> {
+    override fun deleteUserByUsername(username: String): Response<String> {
 
         val response: Response<String> = Response()
 
