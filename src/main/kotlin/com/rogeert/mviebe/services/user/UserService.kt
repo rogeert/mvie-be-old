@@ -3,6 +3,7 @@ package com.rogeert.mviebe.services.user
 import com.rogeert.mviebe.models.entities.User
 import com.rogeert.mviebe.util.Page
 import com.rogeert.mviebe.util.Response
+import org.springframework.data.jpa.repository.Query
 
 interface UserService {
 
