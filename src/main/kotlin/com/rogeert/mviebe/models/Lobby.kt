@@ -1,32 +1,35 @@
 package com.rogeert.mviebe.models
 
+import com.corundumstudio.socketio.SocketIOClient
 import com.rogeert.mviebe.models.entities.User
-import com.rogeert.mviebe.util.Response
-import org.springframework.http.codec.ServerSentEvent
-import org.springframework.http.codec.ServerSentEventHttpMessageWriter
-import reactor.core.publisher.Flux
-import java.time.Duration
+import lombok.extern.slf4j.Slf4j
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import java.util.*
 
-class Lobby {
+@Slf4j
+class Lobby(var code: String,var usersCap:Int,var partyLeader:User) {
 
-    var code: String = "-"
-    var usersCap = 8
-    var users = ArrayList<User>()
-    lateinit var emitter: Flux<Response<String>>
+    var logger: Logger = LoggerFactory.getLogger(Lobby::class.java)
 
-    fun addUser(user: User): Boolean{
+    private var users: HashMap<SocketIOClient, User> = hashMapOf()
 
-        if(users.size == usersCap)
-            return false
 
-        users.add(user)
-        return true
+    fun join(client: SocketIOClient,user:User){
+        users[client] = user
+        users.map {
+            it.key.sendEvent("join_party",it.value)
+        }
+        logger.info("${user.username} has joined $code party.")
     }
 
-    fun kickUser(username: String):Boolean{
-        
+    fun leave(client: SocketIOClient,user:User){
+        users.map {
+            it.key.sendEvent("leave_party",it.value)
+        }
+        users.remove(client)
 
-        return users.removeIf { it.username == username }
+        logger.info("${user.username} has left $code party.")
     }
 
 }
