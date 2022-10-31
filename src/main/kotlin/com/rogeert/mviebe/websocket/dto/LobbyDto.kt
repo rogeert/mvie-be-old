@@ -10,6 +10,8 @@ data class LobbyDto(
     @JsonProperty("type")
     val type:MessageType,
     @JsonProperty("username")
-    val username:String
+    val username:String,
+    @JsonProperty("users")
+    val users:List<String>
 
 )

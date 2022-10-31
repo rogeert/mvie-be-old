@@ -7,7 +7,6 @@ class SocketIOAuth: AuthorizationListener{
 
     override fun isAuthorized(p0: HandshakeData?): Boolean {
 
-
         return true
     }
 }
