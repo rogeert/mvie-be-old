@@ -1,5 +1,6 @@
 package com.rogeert.mviebe.services.user
 
+import com.rogeert.mviebe.dtos.TokenDto
 import com.rogeert.mviebe.models.entities.User
 import com.rogeert.mviebe.util.Page
 import com.rogeert.mviebe.util.Response
@@ -12,6 +13,7 @@ interface UserService {
     fun deleteUserByUsername(username: String):Response<String>
     fun newUser(newUser: User):Response<User>
 
+    fun login(username: String, password:String):Response<TokenDto>
     fun getAllUsers(usersPerPage:Int = 10,page: Int = 0):Response<Page<User>>
     fun addRole(username: String, roleId: Long):Response<User>
     fun removeRole(username: String, roleId: Long): Response<User>

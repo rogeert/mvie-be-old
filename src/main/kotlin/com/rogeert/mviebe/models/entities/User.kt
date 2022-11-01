@@ -1,6 +1,7 @@
 package com.rogeert.mviebe.models.entities
 
 import com.corundumstudio.socketio.SocketIOClient
+import com.fasterxml.jackson.annotation.JsonIgnore
 import lombok.AllArgsConstructor
 import lombok.Data
 import lombok.NoArgsConstructor
@@ -23,10 +24,15 @@ class User {
     var username: String ? = "-"
     var email: String ? = "-"
     var password: String ? = "-"
+
+    @JsonIgnore
     var active: Boolean ? = false
 
+    @JsonIgnore
     @Transient
     var partyCode : String? = null
+
+    @JsonIgnore
     @Transient
     var socket : SocketIOClient? = null
 
