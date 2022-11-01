@@ -1,12 +1,13 @@
 package com.rogeert.mviebe.websocket.config
 
 import com.corundumstudio.socketio.SocketIOServer
+import com.rogeert.mviebe.security.TokenProvider
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-class SocketIOConfig {
+class SocketIOConfig(val tokenProvider: TokenProvider) {
 
 
     @Value("\${socket-server.host}")
@@ -20,7 +21,7 @@ class SocketIOConfig {
         val configuration = com.corundumstudio.socketio.Configuration()
         configuration.hostname = host
         configuration.port = port!!
-        configuration.authorizationListener = SocketIOAuth()
+        configuration.authorizationListener = SocketIOAuth(tokenProvider)
         return SocketIOServer(configuration)
     }
 

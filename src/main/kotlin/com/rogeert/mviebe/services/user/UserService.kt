@@ -12,8 +12,6 @@ interface UserService {
     fun updateUser(username: String, newUser:User):Response<User>
     fun deleteUserByUsername(username: String):Response<String>
     fun newUser(newUser: User):Response<User>
-
-    fun login(username: String, password:String):Response<TokenDto>
     fun getAllUsers(usersPerPage:Int = 10,page: Int = 0):Response<Page<User>>
     fun addRole(username: String, roleId: Long):Response<User>
     fun removeRole(username: String, roleId: Long): Response<User>

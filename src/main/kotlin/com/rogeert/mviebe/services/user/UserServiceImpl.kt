@@ -124,30 +124,6 @@ class UserServiceImpl(val bCryptPasswordEncoder: BCryptPasswordEncoder,val token
 
     }
 
-    override fun login(username: String, password: String): Response<TokenDto> {
-        val response = Response<TokenDto>()
-
-        if(username.isEmpty() || password.isEmpty()){
-            response.messages.add("Make sure username and password are not empty.")
-            response.success = false
-            response.status = HttpStatus.BAD_REQUEST
-            return response
-        }
-
-        val user = userRepository.findByUsername(username)
-
-        if(user.isEmpty){
-            response.messages.add("User not found.")
-            response.success = false
-            response.status = HttpStatus.BAD_REQUEST
-            return response
-        }
-
-
-        return response
-
-    }
-
     override fun getAllUsers(usersPerPage: Int, pageIndex: Int): Response<Page<User>> {
         val response = Response<Page<User>>()
         val page = Page<User>()
