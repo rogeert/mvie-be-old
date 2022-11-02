@@ -1,16 +1,20 @@
 package com.rogeert.mviebe.services.user
 
+import com.rogeert.mviebe.dtos.TokenDto
 import com.rogeert.mviebe.models.entities.User
+import com.rogeert.mviebe.security.TokenProvider
 import com.rogeert.mviebe.util.Page
 import com.rogeert.mviebe.util.Response
 import com.rogeert.mviebe.util.Validation
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
+import org.springframework.security.core.Authentication
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Component
 import java.awt.print.Pageable
 
 @Component
-class UserServiceImpl: Validation(), UserService {
+class UserServiceImpl(val bCryptPasswordEncoder: BCryptPasswordEncoder,val tokenProvider: TokenProvider): Validation(), UserService {
 
 
     override fun getUserByUsername(username: String): Response<User> {
@@ -112,6 +116,7 @@ class UserServiceImpl: Validation(), UserService {
 
         if(validateUserBody(user=newUser, response = response)){
             response.messages.add("Signed up successfully.")
+            newUser.password = bCryptPasswordEncoder.encode(newUser.password)
             response.data = userRepository.save(newUser)
         }
 

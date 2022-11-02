@@ -2,11 +2,26 @@ package com.rogeert.mviebe.websocket.config
 
 import com.corundumstudio.socketio.AuthorizationListener
 import com.corundumstudio.socketio.HandshakeData
+import com.rogeert.mviebe.security.AppAuthenticationManager
+import com.rogeert.mviebe.security.TokenProvider
 
-class SocketIOAuth: AuthorizationListener{
+class SocketIOAuth(private val tokenProvider: TokenProvider): AuthorizationListener{
 
     override fun isAuthorized(p0: HandshakeData?): Boolean {
 
-        return true
+        val token = p0!!.httpHeaders["Authorization"]
+
+        if(token.isNullOrEmpty())
+            return false
+
+        val authentication = tokenProvider.getAuthentication(token)
+
+        var authenticated = false
+
+        authentication?.let {
+            authenticated = it.isAuthenticated
+        }
+
+        return authenticated
     }
 }
