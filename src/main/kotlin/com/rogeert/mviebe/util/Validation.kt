@@ -24,12 +24,19 @@ open class Validation {
         return Pattern.compile("^(.+)@(\\S+)$").matcher(email).matches()
     }
 
-    fun validateUserBody(response: Response<User>, user:User, name:Boolean = true, surname: Boolean = true, username: Boolean = true,
+    fun validateUserBody(response: Response<User>, user:User,image:Boolean = true, name:Boolean = true, surname: Boolean = true, username: Boolean = true,
                          email: Boolean = true,password: Boolean = true,):Boolean{
 
         if(name){
             if(!validateString(str = user.name)){
                 response.messages.add("Name must be at least 3 chars long.")
+            }
+        }
+
+        //TODO check if url is valid
+        if(image){
+            if(user.image.isNullOrBlank()){
+                response.messages.add("Image url is missing.")
             }
         }
 

@@ -24,6 +24,7 @@ class User {
     var username: String ? = "-"
     var email: String ? = "-"
     var password: String ? = "-"
+    var image: String ? = "-"
 
     @JsonIgnore
     var active: Boolean ? = false

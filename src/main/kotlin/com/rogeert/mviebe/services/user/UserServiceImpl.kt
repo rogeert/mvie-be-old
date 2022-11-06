@@ -6,6 +6,7 @@ import com.rogeert.mviebe.security.TokenProvider
 import com.rogeert.mviebe.util.Page
 import com.rogeert.mviebe.util.Response
 import com.rogeert.mviebe.util.Validation
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
@@ -16,6 +17,9 @@ import java.awt.print.Pageable
 @Component
 class UserServiceImpl(val bCryptPasswordEncoder: BCryptPasswordEncoder,val tokenProvider: TokenProvider): Validation(), UserService {
 
+
+    @Value("\${BASE_URL}")
+    var BASE_URL = ""
 
     override fun getUserByUsername(username: String): Response<User> {
 
@@ -73,6 +77,7 @@ class UserServiceImpl(val bCryptPasswordEncoder: BCryptPasswordEncoder,val token
             user.get().email = newUser.email
             user.get().name = newUser.name
             user.get().surname = newUser.surname
+            user.get().image = newUser.image
 
             response.data = userRepository.save(user.get())
             response.messages.add("User was updated successfully.")
