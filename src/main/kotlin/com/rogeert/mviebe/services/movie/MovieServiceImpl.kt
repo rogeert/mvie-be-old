@@ -115,24 +115,31 @@ class MovieServiceImpl:MovieService {
             mdbClient = MovieDbClient(accessToken)
 
 
-            val res:retrofit2.Response<MdbResponse> = mdbClient.movieService.deleteMovie(listId!!, MdbDTO(id.toInt())).execute()
+            try{
+                movieRepository.delete(movie)
+                val res:retrofit2.Response<MdbResponse> = mdbClient.movieService.deleteMovie(listId!!, MdbDTO(id.toInt())).execute()
 
-            if(res.code() != 200){
+                if(res.code() != 200){
 
-                response.messages.add("Couldn't delete movie from The Movie DB.")
+                    response.messages.add("Couldn't delete movie from The Movie DB.")
+                    response.status = HttpStatus.BAD_REQUEST
+                    response.success = false
+                    return response
+                }
+
+                response.messages.add("Movie {$id} deleted.")
+                response.status = HttpStatus.OK
+                response.success= true
+                response.data = "Success."
+
+                return response
+            }catch(e:Exception){
+                response.messages.add(e.printStackTrace().toString())
                 response.status = HttpStatus.BAD_REQUEST
                 response.success = false
-                return response
             }
 
-            movieRepository.deleteMovieByMdbId(id)
 
-            response.messages.add("Movie {$id} deleted.")
-            response.status = HttpStatus.OK
-            response.success= true
-            response.data = "Success."
-
-            return response
         }
 
 
