@@ -7,6 +7,5 @@ import org.springframework.stereotype.Repository
 @Repository
 interface MediaRepository: JpaRepository<Media,Long> {
 
-    fun findMediaByMovieId(movieId: Long):Media?
-
+    fun findMediaByFileName(fileName: String):Media?
 }

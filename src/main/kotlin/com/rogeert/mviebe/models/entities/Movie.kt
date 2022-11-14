@@ -6,20 +6,24 @@ import javax.persistence.Entity
 import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType
 import javax.persistence.Id
-import javax.persistence.OneToMany
+import javax.persistence.ManyToOne
+
 
 @Entity
 @Data
-class  Media{
+class Movie {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     var id: Long ? = -1
 
-    var fileName: String ? = "-"
+    @NotNull
+    var mdbId: Long ? = -1
 
-    var size: Long ? = -1
+    @ManyToOne
+    var media: Media ? = null
 
-    var resolution: Int ? = -1
+    @NotNull
+    var title: String ? = ""
 
 }

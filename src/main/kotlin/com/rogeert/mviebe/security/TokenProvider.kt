@@ -23,7 +23,7 @@ class TokenProvider(
 
     @PostConstruct
     fun init() {
-        key = Keys.hmacShaKeyFor(Keys.secretKeyFor(SignatureAlgorithm.HS512).encoded)
+        key = Keys.hmacShaKeyFor(securityProperties.secret.toByteArray())
         tokenValidity = Date().add(Calendar.DAY_OF_MONTH, 100)// 100 DAYS
     }
 
