@@ -9,6 +9,7 @@ import com.corundumstudio.socketio.listener.DisconnectListener
 import com.rogeert.mviebe.models.Lobby
 import com.rogeert.mviebe.models.entities.User
 import com.rogeert.mviebe.repositories.UserRepository
+import com.rogeert.mviebe.security.TokenProvider
 import com.rogeert.mviebe.util.Response
 import com.rogeert.mviebe.websocket.MessageType
 import com.rogeert.mviebe.websocket.dto.LobbyDto
@@ -23,7 +24,7 @@ import java.util.*
 
 @Service
 @Component
-class LobbyServiceImpl(private final val server: SocketIOServer, private val userRepository: UserRepository): LobbyService {
+class LobbyServiceImpl(private val server: SocketIOServer, private val userRepository: UserRepository,private val tokenProvider: TokenProvider): LobbyService {
 
     private final val logger = LoggerFactory.getLogger(LobbyServiceImpl::class.java)
     private final val lobbies = hashMapOf<String, Lobby>()
@@ -37,7 +38,7 @@ class LobbyServiceImpl(private final val server: SocketIOServer, private val use
 
     private fun onConnected(): ConnectListener = ConnectListener { client: SocketIOClient ->
 
-        val username: String = client.handshakeData.getSingleUrlParam("username")
+        val username: String = tokenProvider.getAuthentication(client.handshakeData.httpHeaders["Authorization"])!!.name
 
         val user = userRepository.findByUsername(username)
 

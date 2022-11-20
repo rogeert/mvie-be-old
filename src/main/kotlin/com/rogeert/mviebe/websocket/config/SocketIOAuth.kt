@@ -20,6 +20,7 @@ class SocketIOAuth(private val tokenProvider: TokenProvider): AuthorizationListe
 
         authentication?.let {
             authenticated = it.isAuthenticated
+            it.name
         }
 
         return authenticated

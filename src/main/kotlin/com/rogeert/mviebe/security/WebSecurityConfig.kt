@@ -26,8 +26,7 @@ class WebSecurityConfig( val securityProperties: SecurityProperties,val authenti
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS) // no sessions
             .and()
             .authorizeRequests()
-            .antMatchers("/api/**").permitAll()
-            .antMatchers("/a/**").permitAll()
+            .antMatchers("/video/**").permitAll()
             .antMatchers(HttpMethod.POST, "/login").permitAll()
             .anyRequest().authenticated()
             .and()
