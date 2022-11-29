@@ -1,8 +1,13 @@
 package com.rogeert.mviebe.websocket
 
-data class SocketMessage<T>(
-    val event: SocketEvent,
-    val username: String,
-    val messageType: MessageType,
-    val data:T
+import com.fasterxml.jackson.annotation.JsonProperty
+
+
+data class SocketMessage(
+    @JsonProperty("sender")
+    val sender: String,
+    @JsonProperty("content")
+    val content: String,
+    @JsonProperty("code")
+    val code:String
     )

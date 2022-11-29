@@ -7,11 +7,13 @@ import com.corundumstudio.socketio.listener.ConnectListener
 import com.corundumstudio.socketio.listener.DataListener
 import com.corundumstudio.socketio.listener.DisconnectListener
 import com.rogeert.mviebe.models.Lobby
+import com.rogeert.mviebe.models.MediaType
 import com.rogeert.mviebe.models.entities.User
 import com.rogeert.mviebe.repositories.UserRepository
 import com.rogeert.mviebe.security.TokenProvider
 import com.rogeert.mviebe.util.Response
 import com.rogeert.mviebe.websocket.MessageType
+import com.rogeert.mviebe.websocket.SocketMessage
 import com.rogeert.mviebe.websocket.dto.LobbyDto
 import com.rogeert.mviebe.websocket.dto.LobbyEvent
 import kotlinx.coroutines.delay
@@ -33,8 +35,17 @@ class LobbyServiceImpl(private val server: SocketIOServer, private val userRepos
         server.addConnectListener(onConnected())
         server.addDisconnectListener(onDisconnected())
         server.addEventListener("send_event",LobbyEvent::class.java,onLobbyEvent())
+        server.addEventListener("client_message",SocketMessage::class.java,onClientMessage())
+        server.addEventListener("test",String::class.java,test())
     }
 
+    private fun test(): DataListener<String> {
+
+        return DataListener<String>{ senderClient: SocketIOClient?, data: String, ackSender: AckRequest? ->
+
+            System.err.println(data)
+        }
+    }
 
     private fun onConnected(): ConnectListener = ConnectListener { client: SocketIOClient ->
 
@@ -58,6 +69,14 @@ class LobbyServiceImpl(private val server: SocketIOServer, private val userRepos
         return DataListener<LobbyEvent>{ senderClient: SocketIOClient?, data: LobbyEvent, ackSender: AckRequest? ->
 
             lobbies[data.code]?.sendMessage(data.triggeredBy,data.content)
+        }
+    }
+
+    private fun onClientMessage(): DataListener<SocketMessage> {
+
+        return DataListener<SocketMessage>{ senderClient: SocketIOClient?, data: SocketMessage, ackSender: AckRequest? ->
+
+            usersSocket[senderClient?.sessionId.toString()]?.username?.let { lobbies[data.code]?.sendMessage(it,data.content) }
         }
     }
 
@@ -91,7 +110,7 @@ class LobbyServiceImpl(private val server: SocketIOServer, private val userRepos
                 }
             }
 
-            val lobby = Lobby(lobbyCode,8,user)
+            val lobby = Lobby(MediaType.NONE,lobbyCode,8,user)
             lobby.join(usersSocket[username]!!,username)
             lobbies[lobbyCode] = lobby
 
@@ -120,7 +139,7 @@ class LobbyServiceImpl(private val server: SocketIOServer, private val userRepos
         if(lobbyToJoin != null && usersSocket[username] != null){
 
             return if(lobbyToJoin.join(usersSocket[username]!!,username)){
-                val lobbyDto = LobbyDto(code,MessageType.SERVER,username,lobbyToJoin.getUsers())
+                val lobbyDto = LobbyDto(lobbyToJoin.mediaType,lobbyToJoin.getSelectedMedia(),lobbyToJoin.partyLeader.username!!,lobbyToJoin.code,lobbyToJoin.getUsers())
 
                 response.messages.add("$username joined {$code} party.")
                 response.success = true

@@ -24,18 +24,10 @@ class SocketManager(private final val server: SocketIOServer) {
 
     init {
 
-        server.addEventListener("create_lobby",LobbyDto::class.java,onCreateLobby())
+        //server.addEventListener("create_lobby",LobbyDto::class.java,onCreateLobby())
     }
 
 
-    private fun onCreateLobby():DataListener<LobbyDto>{
 
-        return DataListener<LobbyDto>{ senderClient: SocketIOClient?, data: LobbyDto, ackSender: AckRequest? ->
-
-            val user = userRepository.findByUsername(data.username).get()
-            val lobby = Lobby("",8,user)
-            //lobby.join(senderClient!!,user)
-        }
-    }
 
 }

@@ -1,6 +1,7 @@
 package com.rogeert.mviebe.websocket.config
 
 import com.corundumstudio.socketio.SocketIOServer
+import com.corundumstudio.socketio.protocol.JsonSupport
 import com.rogeert.mviebe.security.TokenProvider
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
