@@ -9,6 +9,6 @@ interface LobbyService {
 
     fun joinLobby(code:String,username:String):Response<LobbyDto>
 
-    fun leaveLobby(code:String,username:String):Response<String>
+    fun leaveLobby(username:String):Response<String>
 
 }

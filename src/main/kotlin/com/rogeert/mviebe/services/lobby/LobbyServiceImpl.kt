@@ -22,6 +22,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
 import java.util.*
+import kotlin.streams.toList
 
 
 @Service
@@ -36,15 +37,6 @@ class LobbyServiceImpl(private val server: SocketIOServer, private val userRepos
         server.addDisconnectListener(onDisconnected())
         server.addEventListener("send_event",LobbyEvent::class.java,onLobbyEvent())
         server.addEventListener("client_message",SocketMessage::class.java,onClientMessage())
-        server.addEventListener("test",String::class.java,test())
-    }
-
-    private fun test(): DataListener<String> {
-
-        return DataListener<String>{ senderClient: SocketIOClient?, data: String, ackSender: AckRequest? ->
-
-            System.err.println(data)
-        }
     }
 
     private fun onConnected(): ConnectListener = ConnectListener { client: SocketIOClient ->
@@ -60,7 +52,7 @@ class LobbyServiceImpl(private val server: SocketIOServer, private val userRepos
             user.get().socket = client
             usersSocket[username] = user.get()
 
-            logger.info("User $username : ${client.remoteAddress} has connected.")
+            logger.info("User $username : ${client.remoteAddress} just connected.")
         }
     }
 
@@ -76,7 +68,14 @@ class LobbyServiceImpl(private val server: SocketIOServer, private val userRepos
 
         return DataListener<SocketMessage>{ senderClient: SocketIOClient?, data: SocketMessage, ackSender: AckRequest? ->
 
-            usersSocket[senderClient?.sessionId.toString()]?.username?.let { lobbies[data.code]?.sendMessage(it,data.content) }
+            senderClient?.let {
+                usersSocket.values.stream().filter { user-> user.socket!!.sessionId.toString() == senderClient.sessionId.toString() }.toList()[0]?.let {
+                    lobbies[data.code]?.sendMessage(it.username!!,data.content)
+                }
+
+            }
+
+
         }
     }
 
@@ -94,7 +93,7 @@ class LobbyServiceImpl(private val server: SocketIOServer, private val userRepos
 
     override fun createLobby(username:String): Response<String> {
         val response = Response<String>()
-        val lobbyCode = generateLobbyCode(6)
+
 
         if(usersSocket[username] != null){
 
@@ -110,6 +109,7 @@ class LobbyServiceImpl(private val server: SocketIOServer, private val userRepos
                 }
             }
 
+            val lobbyCode = generateLobbyCode(6)
             val lobby = Lobby(MediaType.NONE,lobbyCode,8,user)
             lobby.join(usersSocket[username]!!,username)
             lobbies[lobbyCode] = lobby
@@ -156,32 +156,38 @@ class LobbyServiceImpl(private val server: SocketIOServer, private val userRepos
         return response
     }
 
-    override fun leaveLobby(code: String, username: String): Response<String> {
+    override fun leaveLobby( username: String): Response<String> {
         val response = Response<String>()
 
-        val lobbyToJoin = lobbies[code]
+        val user = usersSocket[username]
 
         response.status = HttpStatus.BAD_REQUEST
         response.success = false
 
-        if(lobbyToJoin != null && usersSocket[username] != null){
+       user?.partyCode?.let {
+           val code = it
+           val lobbyToJoin = lobbies[it]
+           lobbyToJoin?.let {lobby->
+               return if(lobby.leave(username)){
 
-            return if(lobbyToJoin.leave(username)){
+                   if(lobby.getUsers().isEmpty()){
 
-                if(lobbyToJoin.getUsers().isEmpty()){
-                    lobbies.remove(lobbyToJoin.code)
-                }
+                       lobbies.remove(lobby.code)
+                   }
+                   usersSocket[username]?.partyCode = null
 
-                response.messages.add("$username left {$code} party.")
-                response.success = true
-                response.status = HttpStatus.OK
-                response.data = "Success"
-                response
-            }else{
-                response.messages.add("User is not in this lobby.")
-                response
-            }
-        }
+                   response.messages.add("$username left {$code} party.")
+                   response.success = true
+                   response.status = HttpStatus.OK
+                   response.data = "Success"
+                   response
+               }else{
+                   response.messages.add("User is not in this lobby.")
+                   response
+               }
+           }
+
+       }
 
         response.messages.add("Lobby or user not found.")
         return response

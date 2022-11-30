@@ -29,8 +29,8 @@ class LobbyController(val lobbyServiceImpl: LobbyServiceImpl) {
     }
 
     @GetMapping("/leave")
-    fun leaveLobby(principal: Principal,@RequestParam("code") code:String):ResponseEntity<Response<String>>{
-        val response = lobbyServiceImpl.leaveLobby(code,principal.name)
+    fun leaveLobby(principal: Principal):ResponseEntity<Response<String>>{
+        val response = lobbyServiceImpl.leaveLobby(principal.name)
 
         return ResponseEntity(response,response.status!!)
     }

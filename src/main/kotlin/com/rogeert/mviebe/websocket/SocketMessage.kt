@@ -10,4 +10,4 @@ data class SocketMessage(
     val content: String,
     @JsonProperty("code")
     val code:String
-    )
+)
