@@ -12,17 +12,15 @@ import com.rogeert.mviebe.models.entities.User
 import com.rogeert.mviebe.repositories.UserRepository
 import com.rogeert.mviebe.security.TokenProvider
 import com.rogeert.mviebe.util.Response
-import com.rogeert.mviebe.websocket.MessageType
 import com.rogeert.mviebe.websocket.SocketMessage
 import com.rogeert.mviebe.websocket.dto.LobbyDto
 import com.rogeert.mviebe.websocket.dto.LobbyEvent
-import kotlinx.coroutines.delay
+import com.rogeert.mviebe.websocket.dto.LobbyEventEnum
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
 import java.util.*
-import kotlin.streams.toList
 
 
 @Service
@@ -35,8 +33,21 @@ class LobbyServiceImpl(private val server: SocketIOServer, private val userRepos
     init {
         server.addConnectListener(onConnected())
         server.addDisconnectListener(onDisconnected())
-        server.addEventListener("send_event",LobbyEvent::class.java,onLobbyEvent())
         server.addEventListener("client_message",SocketMessage::class.java,onClientMessage())
+        server.addEventListener("party_event",LobbyEvent::class.java,onPartyEvent())
+    }
+
+    private fun onPartyEvent(): DataListener<LobbyEvent> {
+
+        return DataListener<LobbyEvent>{ senderClient: SocketIOClient?, data: LobbyEvent, ackSender: AckRequest? ->
+
+            when(data.event){
+                LobbyEventEnum.MEDIA_SELECT ->{
+                    //TODO
+                }
+            }
+
+        }
     }
 
     private fun onConnected(): ConnectListener = ConnectListener { client: SocketIOClient ->
@@ -53,14 +64,6 @@ class LobbyServiceImpl(private val server: SocketIOServer, private val userRepos
             usersSocket[username] = user.get()
 
             logger.info("User $username : ${client.remoteAddress} just connected.")
-        }
-    }
-
-    private fun onLobbyEvent(): DataListener<LobbyEvent> {
-
-        return DataListener<LobbyEvent>{ senderClient: SocketIOClient?, data: LobbyEvent, ackSender: AckRequest? ->
-
-            lobbies[data.code]?.sendMessage(data.triggeredBy,data.content)
         }
     }
 

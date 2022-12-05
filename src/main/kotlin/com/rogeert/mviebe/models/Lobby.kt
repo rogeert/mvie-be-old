@@ -5,6 +5,7 @@ import com.rogeert.mviebe.models.entities.User
 import com.rogeert.mviebe.websocket.SocketEvent
 import com.rogeert.mviebe.websocket.SocketMessage
 import com.rogeert.mviebe.websocket.dto.LobbyEvent
+import com.rogeert.mviebe.websocket.dto.LobbyEventEnum
 import lombok.extern.slf4j.Slf4j
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -37,7 +38,8 @@ class Lobby(var mediaType: MediaType = MediaType.NONE, var code: String, var use
             return false
 
         users.map {
-            it.value.socket?.sendEvent("party_event",LobbyEvent("New user joined.",code,SocketEvent.JOIN_LOBBY,username,""))
+            if(username != it.key)
+                it.value.socket?.sendEvent("party_event",LobbyEvent(username,code,LobbyEventEnum.JOIN,-1))
         }
         client.partyCode = code
         users[username] = client
@@ -51,7 +53,8 @@ class Lobby(var mediaType: MediaType = MediaType.NONE, var code: String, var use
             return false
 
         users.map {
-            it.value.socket?.sendEvent("party_event",LobbyEvent("User left.",code,SocketEvent.LEAVE_LOBBY,username,""))
+            if(username != it.key)
+                it.value.socket?.sendEvent("party_event",LobbyEvent(username,code,LobbyEventEnum.LEAVE,-1))
         }
         users.remove(username)
 
