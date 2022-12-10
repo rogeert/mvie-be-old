@@ -1,9 +1,8 @@
 package com.rogeert.mviebe.models
 
-import com.corundumstudio.socketio.SocketIOClient
 import com.rogeert.mviebe.models.entities.User
-import com.rogeert.mviebe.websocket.SocketEvent
 import com.rogeert.mviebe.websocket.SocketMessage
+import com.rogeert.mviebe.websocket.dto.LobbyDto
 import com.rogeert.mviebe.websocket.dto.LobbyEvent
 import com.rogeert.mviebe.websocket.dto.LobbyEventEnum
 import lombok.extern.slf4j.Slf4j
@@ -37,30 +36,53 @@ class Lobby(var mediaType: MediaType = MediaType.NONE, var code: String, var use
         if(users[username] != null)
             return false
 
-        users.map {
-            if(username != it.key)
-                it.value.socket?.sendEvent("party_event",LobbyEvent(username,code,LobbyEventEnum.JOIN,-1))
-        }
         client.partyCode = code
         users[username] = client
+
+        val lobbyDta = genDto()
+
+        users.map {
+            if(username != it.key)
+                it.value.socket?.sendEvent("party_event",LobbyEvent(username,LobbyEventEnum.JOIN,lobbyDta))
+        }
+
         logger.info("$username has joined $code party.")
 
         return true
+    }
+
+    fun genDto():LobbyDto{
+        return LobbyDto(mediaType.name,selectedMediaId,partyLeader.username!!,code,users.values.toList())
     }
 
     fun leave(username:String):Boolean{
         if(users[username] == null)
             return false
 
-        users.map {
-            if(username != it.key)
-                it.value.socket?.sendEvent("party_event",LobbyEvent(username,code,LobbyEventEnum.LEAVE,-1))
-        }
         users.remove(username)
+
+        val lobbyDta = genDto()
+
+        users.map {
+            it.value.socket?.sendEvent("party_event",LobbyEvent(username,LobbyEventEnum.LEAVE,lobbyDta))
+        }
 
         logger.info("$username has left $code party.")
 
         return true
+    }
+
+    fun selectContent(username: String,contentId: Int){
+
+        selectedMediaId = contentId
+
+        val lobbyDta = genDto()
+
+        users.map {
+            it.value.socket?.sendEvent("party_event",LobbyEvent(username,LobbyEventEnum.MEDIA_SELECT,lobbyDta))
+
+        }
+
     }
 
     fun disconnected(sessionId:String){

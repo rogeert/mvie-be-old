@@ -14,8 +14,6 @@ import com.rogeert.mviebe.security.TokenProvider
 import com.rogeert.mviebe.util.Response
 import com.rogeert.mviebe.websocket.SocketMessage
 import com.rogeert.mviebe.websocket.dto.LobbyDto
-import com.rogeert.mviebe.websocket.dto.LobbyEvent
-import com.rogeert.mviebe.websocket.dto.LobbyEventEnum
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
@@ -34,21 +32,25 @@ class LobbyServiceImpl(private val server: SocketIOServer, private val userRepos
         server.addConnectListener(onConnected())
         server.addDisconnectListener(onDisconnected())
         server.addEventListener("client_message",SocketMessage::class.java,onClientMessage())
-        server.addEventListener("party_event",LobbyEvent::class.java,onPartyEvent())
+        server.addEventListener("content_selected",Int::class.java,contentSelected())
     }
 
-    private fun onPartyEvent(): DataListener<LobbyEvent> {
 
-        return DataListener<LobbyEvent>{ senderClient: SocketIOClient?, data: LobbyEvent, ackSender: AckRequest? ->
+    private fun contentSelected(): DataListener<Int> {
 
-            when(data.event){
-                LobbyEventEnum.MEDIA_SELECT ->{
-                    //TODO
+        return DataListener<Int>{ senderClient: SocketIOClient?, data: Int, ackSender: AckRequest? ->
+
+            //TODO this is slow... too slow :/
+            senderClient?.let {
+                usersSocket.values.stream().filter { user-> user.socket!!.sessionId.toString() == senderClient.sessionId.toString() }.toList()[0]?.let {
+                    lobbies[it.partyCode]?.selectContent(it.username!!, data)
                 }
+
             }
 
         }
     }
+
 
     private fun onConnected(): ConnectListener = ConnectListener { client: SocketIOClient ->
 
@@ -94,8 +96,8 @@ class LobbyServiceImpl(private val server: SocketIOServer, private val userRepos
         }
     }
 
-    override fun createLobby(username:String): Response<String> {
-        val response = Response<String>()
+    override fun createLobby(username:String): Response<LobbyDto> {
+        val response = Response<LobbyDto>()
 
 
         if(usersSocket[username] != null){
@@ -117,10 +119,13 @@ class LobbyServiceImpl(private val server: SocketIOServer, private val userRepos
             lobby.join(usersSocket[username]!!,username)
             lobbies[lobbyCode] = lobby
 
+            val lobbyDto = LobbyDto(lobby.mediaType.name,lobby.getSelectedMedia(),lobby.partyLeader.username!!,lobby.code,lobby.getUsers())
+
+
             response.success = true
             response.status = HttpStatus.OK
             response.messages.add("Lobby created successfully.")
-            response.data = lobbyCode
+            response.data = lobbyDto
             return response
         }
 
@@ -142,7 +147,7 @@ class LobbyServiceImpl(private val server: SocketIOServer, private val userRepos
         if(lobbyToJoin != null && usersSocket[username] != null){
 
             return if(lobbyToJoin.join(usersSocket[username]!!,username)){
-                val lobbyDto = LobbyDto(lobbyToJoin.mediaType,lobbyToJoin.getSelectedMedia(),lobbyToJoin.partyLeader.username!!,lobbyToJoin.code,lobbyToJoin.getUsers())
+                val lobbyDto = lobbyToJoin.genDto()
 
                 response.messages.add("$username joined {$code} party.")
                 response.success = true
@@ -195,6 +200,10 @@ class LobbyServiceImpl(private val server: SocketIOServer, private val userRepos
         response.messages.add("Lobby or user not found.")
         return response
 
+    }
+
+    override fun setReady(username: String, value: Boolean, code: String): Response<LobbyDto> {
+        TODO("Not yet implemented")
     }
 
     fun generateLobbyCode(length:Int):String {

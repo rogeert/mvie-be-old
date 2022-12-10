@@ -15,7 +15,7 @@ class LobbyController(val lobbyServiceImpl: LobbyServiceImpl) {
 
 
     @PostMapping("/create")
-    fun createLobby(principal: Principal):ResponseEntity<Response<String>>{
+    fun createLobby(principal: Principal):ResponseEntity<Response<LobbyDto>>{
         val response = lobbyServiceImpl.createLobby(principal.name)
 
         return ResponseEntity(response,response.status!!)

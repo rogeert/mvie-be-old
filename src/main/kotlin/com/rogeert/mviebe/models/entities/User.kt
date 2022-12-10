@@ -37,6 +37,9 @@ class User {
     @Transient
     var socket : SocketIOClient? = null
 
+    @Transient
+    var ready : Boolean ? = false
+
     @OneToMany(cascade = [CascadeType.DETACH],fetch = FetchType.EAGER,)
     var roles: Set<Role> = HashSet()
 }

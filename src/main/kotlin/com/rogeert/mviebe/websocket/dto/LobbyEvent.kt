@@ -7,14 +7,11 @@ data class LobbyEvent(
     @JsonProperty("username")
     val username:String,
 
-    @JsonProperty("lobbyCode")
-    val code:String,
-
     @JsonProperty("event")
     val event:LobbyEventEnum,
 
-    @JsonProperty("mediaId")
-    val mediaId:Int?
+    @JsonProperty("lobby")
+    val lobby: LobbyDto
 )
 
 
