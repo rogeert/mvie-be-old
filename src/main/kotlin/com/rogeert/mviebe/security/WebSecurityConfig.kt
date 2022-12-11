@@ -27,6 +27,7 @@ class WebSecurityConfig( val securityProperties: SecurityProperties,val authenti
             .and()
             .authorizeRequests()
             .antMatchers("/video/**").permitAll()
+            .antMatchers(HttpMethod.POST, "/users/").permitAll()
             .antMatchers(HttpMethod.POST, "/login").permitAll()
             .anyRequest().authenticated()
             .and()

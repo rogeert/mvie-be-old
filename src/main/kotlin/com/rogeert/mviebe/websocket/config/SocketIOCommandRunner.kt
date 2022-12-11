@@ -25,7 +25,7 @@ class SocketIOCommandRunner(private val server: SocketIOServer,private val media
 
     fun populateMedias(){
 
-        Files.newDirectoryStream(ResourceUtils.getFile("classpath:content/videos").toPath()).use { stream ->
+        Files.newDirectoryStream(ResourceUtils.getFile(System.getProperty("user.dir") + "/videos").toPath()).use { stream ->
             for (path in stream) {
                 if (!Files.isDirectory(path)) {
 

@@ -1,5 +1,6 @@
 package com.rogeert.mviebe.services
 
+import okio.Path.Companion.toPath
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.Resource
 import org.springframework.core.io.ResourceLoader
@@ -9,7 +10,8 @@ import reactor.core.publisher.Mono
 @Service
 class StreamingService {
 
-    final val FORMAT = "classpath:content/videos/%s.mp4"
+    final val FORMAT = "file:" + System.getProperty("user.dir") + "\\videos\\%s.mp4"
+
     @Autowired
     lateinit var resourceLoader : ResourceLoader;
 

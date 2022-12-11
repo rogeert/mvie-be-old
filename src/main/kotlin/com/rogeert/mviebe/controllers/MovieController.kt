@@ -58,7 +58,7 @@ class MovieController {
     }
 
     @DeleteMapping("/{id}")
-    fun update(@PathVariable("id") movieId:Long):ResponseEntity<Response<String>>{
+    fun delete(@PathVariable("id") movieId:Long):ResponseEntity<Response<String>>{
         val response = movieServiceImpl.deleteById(movieId)
 
         return ResponseEntity(response,response.status!!)

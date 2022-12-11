@@ -122,6 +122,7 @@ class UserServiceImpl(val bCryptPasswordEncoder: BCryptPasswordEncoder,val token
         if(validateUserBody(user=newUser, response = response)){
             response.messages.add("Signed up successfully.")
             newUser.password = bCryptPasswordEncoder.encode(newUser.password)
+            newUser.image = "/images/14"
             response.data = userRepository.save(newUser)
         }
 
