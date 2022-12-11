@@ -7,6 +7,7 @@ import com.corundumstudio.socketio.listener.ConnectListener
 import com.corundumstudio.socketio.listener.DataListener
 import com.corundumstudio.socketio.listener.DisconnectListener
 import com.rogeert.mviebe.models.Lobby
+import com.rogeert.mviebe.models.MediaPlayer
 import com.rogeert.mviebe.models.MediaType
 import com.rogeert.mviebe.models.entities.User
 import com.rogeert.mviebe.repositories.UserRepository
@@ -33,8 +34,37 @@ class LobbyServiceImpl(private val server: SocketIOServer, private val userRepos
         server.addDisconnectListener(onDisconnected())
         server.addEventListener("client_message",SocketMessage::class.java,onClientMessage())
         server.addEventListener("content_selected",Int::class.java,contentSelected())
+        server.addEventListener("ready",Int::class.java,ready())
+        server.addEventListener("player",MediaPlayer::class.java,onUpdatePlayer())
     }
 
+    private fun onUpdatePlayer(): DataListener<MediaPlayer> {
+
+        return DataListener<MediaPlayer>{ senderClient: SocketIOClient?, data: MediaPlayer, ackSender: AckRequest? ->
+
+            //TODO this is slow... too slow :/
+            if(senderClient != null){
+                usersSocket.values.stream().filter { user-> user.socket!!.sessionId.toString() == senderClient.sessionId.toString() }.toList()[0]?.let {
+                    lobbies[it.partyCode]?.updatePlayer(data)
+                }
+            }
+
+        }
+    }
+
+    private fun ready(): DataListener<Int> {
+
+        return DataListener<Int>{ senderClient: SocketIOClient?, data: Int, ackSender: AckRequest? ->
+
+            //TODO this is slow... too slow :/
+            if(senderClient != null){
+                usersSocket.values.stream().filter { user-> user.socket!!.sessionId.toString() == senderClient.sessionId.toString() }.toList()[0]?.let {
+                    lobbies[it.partyCode]?.setReady(it.username!!, data != 0)
+                }
+            }
+
+        }
+    }
 
     private fun contentSelected(): DataListener<Int> {
 

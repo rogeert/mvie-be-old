@@ -19,6 +19,8 @@ class Lobby(var mediaType: MediaType = MediaType.NONE, var code: String, var use
 
     private var selectedMediaId = -1
 
+    private var player: MediaPlayer = MediaPlayer()
+
     fun setPartyLeader(username:String){
         partyLeader = users[username]!!
     }
@@ -82,7 +84,27 @@ class Lobby(var mediaType: MediaType = MediaType.NONE, var code: String, var use
             it.value.socket?.sendEvent("party_event",LobbyEvent(username,LobbyEventEnum.MEDIA_SELECT,lobbyDta))
 
         }
+    }
 
+    fun updatePlayer(player: MediaPlayer){
+
+        this.player = player
+
+        users.map {
+            it.value.socket?.sendEvent("media_player",player)
+        }
+
+    }
+
+    fun setReady(username: String,readyValue: Boolean){
+
+        users[username]?.ready = readyValue
+
+        val lobbyDta = genDto()
+
+        users.map {
+            it.value.socket?.sendEvent("party_event",LobbyEvent(username,LobbyEventEnum.READY,lobbyDta))
+        }
     }
 
     fun disconnected(sessionId:String){

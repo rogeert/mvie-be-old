@@ -17,5 +17,5 @@ data class LobbyEvent(
 
 
 enum class LobbyEventEnum{
-    JOIN, LEAVE, MEDIA_SELECT;
+    JOIN, LEAVE, MEDIA_SELECT,READY;
 }
