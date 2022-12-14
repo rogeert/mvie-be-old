@@ -5,9 +5,11 @@ import com.rogeert.mviebe.models.entities.Media
 import com.rogeert.mviebe.repositories.MediaRepository
 import lombok.RequiredArgsConstructor
 import lombok.extern.slf4j.Slf4j
+import org.apache.tomcat.util.http.fileupload.FileUtils
 import org.springframework.boot.CommandLineRunner
 import org.springframework.stereotype.Component
 import org.springframework.util.ResourceUtils
+import java.io.File
 import java.nio.file.Files
 
 
@@ -29,12 +31,22 @@ class SocketIOCommandRunner(private val server: SocketIOServer,private val media
             for (path in stream) {
                 if (!Files.isDirectory(path)) {
 
+                    val file = File(path.toUri())
+
                     val fileName = path.fileName
                         .toString().substringBefore(".")
 
-                    if(mediaRepository.findMediaByFileName(fileName) == null){
+                    val renamedFile = fileName.replace(" ","_")
+
+                    if(fileName.contains(" ")){
+                        val newFile = File(path.toUri().path.substringBeforeLast("/") + "/" + renamedFile + ".mp4")
+
+                        file.renameTo(newFile)
+                    }
+
+                    if(mediaRepository.findMediaByFileName(renamedFile) == null){
                         val media = Media()
-                        media.fileName = fileName
+                        media.fileName = fileName.replace(" ","_")
                         media.size = Files.size(path)
 
                         mediaRepository.save(media)
