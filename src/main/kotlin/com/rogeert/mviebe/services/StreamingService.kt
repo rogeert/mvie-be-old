@@ -6,11 +6,12 @@ import org.springframework.core.io.Resource
 import org.springframework.core.io.ResourceLoader
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
+import java.io.File
 
 @Service
 class StreamingService {
 
-    final val FORMAT = "file:" + System.getProperty("user.dir") + "\\videos\\%s.mp4"
+    final val FORMAT = "file:" + System.getProperty("user.dir") + File.separatorChar +  "videos" + File.separatorChar + "%s.mp4"
 
     @Autowired
     lateinit var resourceLoader : ResourceLoader;
